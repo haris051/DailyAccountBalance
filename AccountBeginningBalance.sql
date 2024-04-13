@@ -1,7 +1,6 @@
-<<<<<<< HEAD
-=======
+
 /*Daily_Account_Balance*/
->>>>>>> f00013b (Account Beginning Balance)
+
 drop table  if Exists Daily_Account_Balance;
 
 
