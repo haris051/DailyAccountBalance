@@ -1,6 +1,3 @@
-
-/*Daily_Account_Balance*/
-
 drop table  if Exists Daily_Account_Balance;
 
 
@@ -115,7 +112,10 @@ if OpenningBalanceFlag = 'OpenningBalance'
 								case when amount<0 then amount * -1 else 0 end,
 								amount,
 								convert(entryDate,date)
-							  );
+							  )
+						on duplicate key update Balance=Balance+amount,
+												Debit=Debit + case when amount>0 then amount else 0 end,
+												credit=credit + case when amount<0 then amount *-1 else 0 end;
 	 elseif 
 		  getAccountType = 1 OR 
 		  getAccountType = 4 OR 
@@ -129,7 +129,10 @@ if OpenningBalanceFlag = 'OpenningBalance'
 								case when amount>0 then amount else 0 end,
 								amount,
 								convert(entryDate,date)
-							  );
+							  )
+						on duplicate key update Balance=Balance+amount,
+												Debit=Debit + case when amount<0 then amount * -1 else 0 end,
+												credit=credit + case when amount>0 then amount else 0 end;
 	end if;
 					
         return '';
