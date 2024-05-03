@@ -68,7 +68,7 @@ if
 		glFlag = 81 OR glFlag = 46 OR glFlag = 47 OR glFlag =50 OR 
 		glFlag = 51 OR glFlag = 54 OR glFlag = 56 OR glFlag = 86 OR 
 		glFlag = 87 OR glFlag = 85 OR glFlag = 58 OR glFlag = 60 OR 
-		glFlag = 150 OR glFlag = 151 OR glFlag = 62 glFlag = 65 OR 
+		glFlag = 150 OR glFlag = 151 OR glFlag = 62 OR glFlag = 65 OR 
 		glFlag = 68 OR glFlag = 70 OR glFlag = 72 OR glFlag = 73 OR 
 		glFlag = 76 OR glFlag = 78 OR glFlag = 77 OR glFlag = 101 OR 
 		glFlag = 23 OR glFlag = 102 OR glFlag = 104 OR glFlag = 106 OR
