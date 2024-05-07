@@ -74,7 +74,7 @@ if
 		glFlag = 23 OR glFlag = 102 OR glFlag = 104 OR glFlag = 106 OR
 		glFlag = 29 OR glFlag = 28 OR glFlag = 108 OR glFlag = 109 OR 
 		glFlag = 111 OR glFlag = 114 OR glFlag = 5552 OR glFlag = 115 OR 
-		glFlag = 90
+		glFlag = 90 OR glFlag = 5554
     
     then
 		set debitCreditFlag = 'Credit';
@@ -90,7 +90,8 @@ elseif
 		glFlag = 75 OR glFlag = 26 OR glFlag = 201 OR glFlag = 203 OR 
 		glFlag = 103 OR glFlag = 105 OR glFlag = 107 OR glFlag = 204 OR 
 		glFlag = 205 OR glFlag = 110 OR glFlag = 113 OR glFlag = 112 OR 
-		glFlag = 5551 OR glFlag = 89 OR glFlag =116 OR glFlag = 117
+		glFlag = 5551 OR glFlag = 89 OR glFlag =116 OR glFlag = 117 OR 
+		glFlag = 5553
 		
      then
 		set debitCreditFlag = 'Debit';
