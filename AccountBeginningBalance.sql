@@ -2,14 +2,16 @@ drop table  if Exists Daily_Account_Balance;
 
 
 create table Daily_Account_Balance(
-                                    id int primary key auto_increment,
+                                    id int not null primary key auto_increment,
                                     AccountId int,
 									Debit Double,
 									Credit Double,
                                     Balance Double,
                                     EntryDate Date,
                                     foreign key(AccountId) references accounts_id(id) on delete cascade,
-                                    unique key(AccountId,EntryDate)
+                                    INDEX (AccountId),
+									INDEX (EntryDate),
+									INDEX (id)
                                   );
                                 
 
@@ -27,13 +29,12 @@ BEGIN
 Declare getAccountType int;
 Declare debitCreditFlag Text;
 Declare OpenningBalanceFlag Text;
+Declare Unique_AccountId_EntryDate_PrimaryKey int;
 
-if 
-    accountId is null
+if  accountId is null
 	then
 		return 'accountID is null';
-elseif
-    glFlag is null
+elseif glFlag is null
 	then
 		return 'GLFLAG is null';
 elseif
@@ -110,41 +111,64 @@ if OpenningBalanceFlag = 'OpenningBalance'
 		  getAccountType = 2 OR 
 		  getAccountType = 5 
 		  then 
-		  
-				insert 
-						into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) 
-						values(
-								accountId,
-								case when amount>0 then amount else 0 end,
-								case when amount<0 then amount * -1 else 0 end,
-								amount,
-								convert(entryDate,date)
-							  )
-						on duplicate key update Balance=Balance+amount,
-												Debit=Debit + case when amount>0 then amount else 0 end,
-												credit=credit + case when amount<0 then amount *-1 else 0 end;
+		                select id INTO Unique_AccountId_EntryDate_PrimaryKey 
+						from Daily_Account_Balance as A
+						where A.AccountId = accountId 
+						and Convert(A.EntryDate,Date) = convert(entryDate,Date);
+						
+						if(Unique_AccountId_EntryDate_PrimaryKey is null or Unique_AccountId_EntryDate_PrimaryKey = '')
+						   then 
+						       insert into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) 
+								values(
+										accountId,
+										case when amount>0 then amount else 0 end,
+										case when amount<0 then amount * -1 else 0 end,
+										amount,
+										convert(entryDate,date)
+									   );
+						    else 
+								 update Daily_Account_Balance
+								 SET    Balance=Balance+amount,
+										Debit=Debit + case when amount>0 then amount else 0 end,
+										credit=credit + case when amount<0 then amount *-1 else 0 end
+								 where id = Unique_AccountId_EntryDate_PrimaryKey;
+						end if;
+				
 	 elseif 
 		  getAccountType = 1 OR 
 		  getAccountType = 4 OR 
 		  getAccountType = 6
 		  then 
-				insert 
-						into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) 
-						values(
-								accountId,
-								case when amount<0 then amount * -1 else 0 end,
-								case when amount>0 then amount else 0 end,
-								amount,
-								convert(entryDate,date)
-							  )
-						on duplicate key update Balance=Balance+amount,
-												Debit=Debit + case when amount<0 then amount * -1 else 0 end,
-												credit=credit + case when amount>0 then amount else 0 end;
-	end if;
-					
+		  
+						select id INTO Unique_AccountId_EntryDate_PrimaryKey 
+						from Daily_Account_Balance as A
+						where A.AccountId = accountId 
+						and Convert(A.EntryDate,Date) = convert(entryDate,Date);
+						
+						if(Unique_AccountId_EntryDate_PrimaryKey is null or Unique_AccountId_EntryDate_PrimaryKey = '')
+							then 
+					            insert	into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) 
+								values(
+										accountId,
+										case when amount<0 then amount * -1 else 0 end,
+										case when amount>0 then amount else 0 end,
+										amount,
+										convert(entryDate,date)
+									   );
+							else 
+								update Daily_Account_Balance 
+								SET    Balance=Balance+amount,
+									   Debit=Debit + case when amount<0 then amount * -1 else 0 end,
+									   credit=credit + case when amount>0 then amount else 0 end
+							    where id = Unique_AccountId_EntryDate_PrimaryKey;
+								
+						end if;
+							
+							
+				end if;									
         return '';
-end if;
 
+end if;
 
 if 
 	getAccountType = 3 or 
@@ -154,12 +178,36 @@ if
 		if
 		  debitCreditFlag='Debit'
 				then
-					insert into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) values(accountId,amount,0,amount,convert(entryDate,date))
-					on duplicate key update Balance=Balance+amount,Debit=Debit+amount;
+					
+					select id INTO Unique_AccountId_EntryDate_PrimaryKey 
+					from Daily_Account_Balance as A 
+					where A.AccountId = accountId 
+					and Convert(A.EntryDate,Date) = convert(entryDate,Date);
+						
+					if (Unique_AccountId_EntryDate_PrimaryKey is null or Unique_AccountId_EntryDate_PrimaryKey = '')
+						then 
+							insert into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) 
+							values(accountId,amount,0,amount,convert(entryDate,date));	
+                        else 
+							update Daily_Account_Balance SET Balance=Balance+amount,Debit=Debit+amount where id = Unique_AccountId_EntryDate_PrimaryKey;
+							
+					end if;
+					
                     return '';
 				else
-					insert into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) values(accountId,0,amount,amount*-1,convert(entryDate,date))
-					on duplicate key update Balance=Balance-amount,Credit=Credit+amount;
+				
+					select id INTO Unique_AccountId_EntryDate_PrimaryKey 
+					from Daily_Account_Balance as A 
+					where A.AccountId = accountId 
+					and Convert(A.EntryDate,Date) = convert(entryDate,Date);
+
+                    if(Unique_AccountId_EntryDate_PrimaryKey is null or Unique_AccountId_EntryDate_PrimaryKey = '')
+						then 
+							insert into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) values(accountId,0,amount,amount*-1,convert(entryDate,date));
+						else 
+							update Daily_Account_Balance SET Balance=Balance-amount,Credit=Credit+amount where id = Unique_AccountId_EntryDate_PrimaryKey;
+				    end if;
+					
                     return '';
 		end if;
 elseif 
@@ -170,12 +218,33 @@ elseif
 			if 
 			  debitCreditFlag = 'Debit'
               then
-				  insert into Daily_Account_Balance(AccountId,DEBIT,CREDIT,Balance,EntryDate) values(accountId,amount,0,amount*-1,convert(entryDate,date))
-				  on duplicate key update Balance=Balance-amount,DEBIT = DEBIT + amount;
+				  
+				  select id INTO Unique_AccountId_EntryDate_PrimaryKey 
+				  from Daily_Account_Balance as A 
+				  where A.AccountId = accountId 
+				  and Convert(A.EntryDate,Date) = convert(entryDate,Date);
+				  
+				  if(Unique_AccountId_EntryDate_PrimaryKey is null or Unique_AccountId_EntryDate_PrimaryKey = '')
+						then 
+							insert into Daily_Account_Balance(AccountId,DEBIT,CREDIT,Balance,EntryDate) values(accountId,amount,0,amount*-1,convert(entryDate,date));
+						else 
+							update Daily_Account_Balance SET Balance=Balance-amount,DEBIT = DEBIT + amount where id = Unique_AccountId_EntryDate_PrimaryKey;
+				  end if;
+				  
                   return '';
 			  else
-				  insert into Daily_Account_Balance(AccountId,DEBIT,CREDIT,Balance,EntryDate) values(accountId,0,amount,amount,convert(entryDate,date))
-				  on duplicate key update Balance=Balance+amount,CREDIT = CREDIT + amount;
+				  select id INTO Unique_AccountId_EntryDate_PrimaryKey 
+				  from Daily_Account_Balance as A  
+				  where A.AccountId = accountId 
+				  and Convert(A.EntryDate,Date) = convert(entryDate,Date);
+				  
+				  if(Unique_AccountId_EntryDate_PrimaryKey is null or Unique_AccountId_EntryDate_PrimaryKey = '')
+						then
+							insert into Daily_Account_Balance(AccountId,DEBIT,CREDIT,Balance,EntryDate) values(accountId,0,amount,amount,convert(entryDate,date));
+						else 
+							update Daily_Account_Balance SET Balance=Balance+amount,CREDIT = CREDIT + amount where id =Unique_AccountId_EntryDate_PrimaryKey;
+				  end if;
+				 
                   return '';
 			end if;
 end if;
