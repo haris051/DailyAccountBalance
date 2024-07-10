@@ -134,7 +134,7 @@ if OpenningBalanceFlag = 'OpenningBalance'
 		  getAccountType = 2 OR 
 		  getAccountType = 5 
 		  then 
-		                select id INTO Unique_AccountId_EntryDate_PrimaryKey 
+		                select A.id INTO Unique_AccountId_EntryDate_PrimaryKey 
 						from Daily_Account_Balance as A
 						where A.AccountId = accountId 
 						and Convert(A.EntryDate,Date) = convert(entryDate,Date);
@@ -163,7 +163,7 @@ if OpenningBalanceFlag = 'OpenningBalance'
 		  getAccountType = 6
 		  then 
 		  
-						select id INTO Unique_AccountId_EntryDate_PrimaryKey 
+						select A.id INTO Unique_AccountId_EntryDate_PrimaryKey 
 						from Daily_Account_Balance as A
 						where A.AccountId = accountId 
 						and Convert(A.EntryDate,Date) = convert(entryDate,Date);
@@ -202,7 +202,7 @@ if
 		  debitCreditFlag='Debit'
 				then
 					
-					select id INTO Unique_AccountId_EntryDate_PrimaryKey 
+					select A.id INTO Unique_AccountId_EntryDate_PrimaryKey 
 					from Daily_Account_Balance as A 
 					where A.AccountId = accountId 
 					and Convert(A.EntryDate,Date) = convert(entryDate,Date);
@@ -219,7 +219,7 @@ if
                     return '';
 				else
 				
-					select id INTO Unique_AccountId_EntryDate_PrimaryKey 
+					select A.id INTO Unique_AccountId_EntryDate_PrimaryKey 
 					from Daily_Account_Balance as A 
 					where A.AccountId = accountId 
 					and Convert(A.EntryDate,Date) = convert(entryDate,Date);
@@ -242,7 +242,7 @@ elseif
 			  debitCreditFlag = 'Debit'
               then
 				  
-				  select id INTO Unique_AccountId_EntryDate_PrimaryKey 
+				  select A.id INTO Unique_AccountId_EntryDate_PrimaryKey 
 				  from Daily_Account_Balance as A 
 				  where A.AccountId = accountId 
 				  and Convert(A.EntryDate,Date) = convert(entryDate,Date);
@@ -256,7 +256,7 @@ elseif
 				  
                   return '';
 			  else
-				  select id INTO Unique_AccountId_EntryDate_PrimaryKey 
+				  select A.id INTO Unique_AccountId_EntryDate_PrimaryKey 
 				  from Daily_Account_Balance as A  
 				  where A.AccountId = accountId 
 				  and Convert(A.EntryDate,Date) = convert(entryDate,Date);
