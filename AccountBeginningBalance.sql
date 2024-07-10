@@ -1,3 +1,4 @@
+/*
 drop table  if Exists Daily_Account_Balance;
 
 
@@ -13,7 +14,29 @@ create table Daily_Account_Balance(
 									INDEX (EntryDate),
 									INDEX (id)
                                   );
-                                
+  */
+
+Alter Table daily_account_balance   
+drop foreign key daily_account_balance_ibfk_1;                               
+                                  
+Alter Table daily_account_balance
+Drop Constraint AccountId;                                  
+                                  
+Alter Table Daily_Account_Balance 
+Add Constraint Unique_Id Unique(id);
+
+
+Alter Table Daily_Account_Balance
+Add index Index_Account_Id (AccountId);
+
+Alter Table Daily_Account_Balance
+Add index Index_Entry_Date (EntryDate);
+
+Alter Table Daily_Account_Balance
+Add index Index_id(id);
+
+Alter Table daily_account_balance
+Add constraint AccountId_ForeignKey Foreign key(AccountId) references accounts_id(id) on delete cascade;
 
 
 drop FUNCTION  if Exists FUNC_SET_DAILY_ACCOUNT_BALANCE;
@@ -251,6 +274,7 @@ end if;
 END$$
 DELIMITER ;
 
+/*
 select FUNC_SET_DAILY_ACCOUNT_BALANCE(GL_ACC_ID,Amount,GL_FLAG,FORM_DATE) from sales_accounting;
 select FUNC_SET_DAILY_ACCOUNT_BALANCE(GL_ACC_ID,Amount,GL_FLAG,FORM_DATE) from purchase_accounting;
 select FUNC_SET_DAILY_ACCOUNT_BALANCE(GL_ACC_ID,Amount,GL_FLAG,FORM_DATE) from payments_accounting;
@@ -258,3 +282,4 @@ select FUNC_SET_DAILY_ACCOUNT_BALANCE(GL_ACC_ID,Amount,GL_FLAG,FORM_DATE) from r
 select FUNC_SET_DAILY_ACCOUNT_BALANCE(GL_ACC_ID,Amount,GL_FLAG,FORM_DATE) from adjustment_accounting;
 select FUNC_SET_DAILY_ACCOUNT_BALANCE(GL_ACC_ID,Amount,GL_FLAG,FORM_DATE) from stock_accounting;
 select FUNC_SET_DAILY_ACCOUNT_BALANCE(accounts_id.ID,accounts_id.Beginning_BALANCE,5555,accounts_id.ENTRY_DATE) from accounts_id;
+*/
