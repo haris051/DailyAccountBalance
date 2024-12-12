@@ -5,14 +5,14 @@ drop table  if Exists Daily_Account_Balance;
 create table Daily_Account_Balance(
                                     id int not null primary key auto_increment,
                                     AccountId int,
-									Debit Double,
-									Credit Double,
-                                    Balance Double,
+				    Debit DECIMAL(22,2),
+				    Credit DECIMAL(22,2),
+                                    Balance DECIMAL(22,2),
                                     EntryDate Date,
                                     foreign key(AccountId) references accounts_id(id) on delete cascade,
                                     INDEX (AccountId),
-									INDEX (EntryDate),
-									INDEX (id)
+				    INDEX (EntryDate),
+				    INDEX (id)
                                   );
   */
 
@@ -43,7 +43,7 @@ drop FUNCTION  if Exists FUNC_SET_DAILY_ACCOUNT_BALANCE;
 
 DELIMITER $$
 
-create function FUNC_SET_DAILY_ACCOUNT_BALANCE(accountId int,amount double,glFlag int,entryDate Text)
+create function FUNC_SET_DAILY_ACCOUNT_BALANCE(accountId int,AMOUNT DECIMAL(22, 2),glFlag int,entryDate Text)
 returns Text
 READS SQL DATA
 DETERMINISTIC
@@ -121,77 +121,186 @@ elseif
      then
 		set debitCreditFlag = 'Debit';
 elseif
-	glFlag=5555
-	 then
-		set OpenningBalanceFlag = 'OpenningBalance';
+	glFlag = 5555 OR glFlag = -5555
+		 then
+			set OpenningBalanceFlag = 'OpenningBalance';
 		
 end if;
 
 if OpenningBalanceFlag = 'OpenningBalance'
-	then
-		if 
-		  getAccountType = 3 OR 
-		  getAccountType = 2 OR 
-		  getAccountType = 5 
-		  then 
-		                select A.id INTO Unique_AccountId_EntryDate_PrimaryKey 
-						from Daily_Account_Balance as A
-						where A.AccountId = accountId 
-						and Convert(A.EntryDate,Date) = convert(entryDate,Date);
-						
-						if(Unique_AccountId_EntryDate_PrimaryKey is null or Unique_AccountId_EntryDate_PrimaryKey = '')
-						   then 
-						       insert into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) 
+		then
+			if 
+			  getAccountType = 3 OR 
+			  getAccountType = 2 OR 
+			  getAccountType = 5 
+			  then 
+					select A.id INTO Unique_AccountId_EntryDate_PrimaryKey 
+					from Daily_Account_Balance as A
+					where A.AccountId = accountId 
+					and Convert(A.EntryDate,Date) = convert(entryDate,Date);
+					
+					if(Unique_AccountId_EntryDate_PrimaryKey is null or Unique_AccountId_EntryDate_PrimaryKey = '')
+					   then 
+					   
+							IF (amount >= 0)
+							THEN
+					   
+							   insert into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) 
 								values(
 										accountId,
-										case when amount>0 then amount else 0 end,
-										case when amount<0 then amount * -1 else 0 end,
+										amount,
+										0,
 										amount,
 										convert(entryDate,date)
 									   );
-						    else 
-								 update Daily_Account_Balance
-								 SET    Balance=Balance+amount,
-										Debit=Debit + case when amount>0 then amount else 0 end,
-										credit=credit + case when amount<0 then amount *-1 else 0 end
-								 where id = Unique_AccountId_EntryDate_PrimaryKey;
-						end if;
-				
-	 elseif 
-		  getAccountType = 1 OR 
-		  getAccountType = 4 OR 
-		  getAccountType = 6
-		  then 
-		  
-						select A.id INTO Unique_AccountId_EntryDate_PrimaryKey 
-						from Daily_Account_Balance as A
-						where A.AccountId = accountId 
-						and Convert(A.EntryDate,Date) = convert(entryDate,Date);
-						
-						if(Unique_AccountId_EntryDate_PrimaryKey is null or Unique_AccountId_EntryDate_PrimaryKey = '')
-							then 
-					            insert	into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) 
+									   
+							ELSE 
+							
+								insert into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) 
 								values(
 										accountId,
-										case when amount<0 then amount * -1 else 0 end,
-										case when amount>0 then amount else 0 end,
+										0,
+										amount * -1,
 										amount,
 										convert(entryDate,date)
 									   );
-							else 
-								update Daily_Account_Balance 
-								SET    Balance=Balance+amount,
-									   Debit=Debit + case when amount<0 then amount * -1 else 0 end,
-									   credit=credit + case when amount>0 then amount else 0 end
-							    where id = Unique_AccountId_EntryDate_PrimaryKey;
+									   
+							END IF;
+							
+						else 
+							
+							IF (glFlag = 5555)
+							THEN
+							
+								IF (amount >= 0)
+                                THEN
+                            
+									 update Daily_Account_Balance
+									 SET    Balance = Balance + amount,
+											Debit = Debit + amount
+									 where id = Unique_AccountId_EntryDate_PrimaryKey;
+                                     
+								 ELSE
+                                 
+									update Daily_Account_Balance
+									 SET    Balance = Balance + amount,
+											credit = credit + amount * -1
+									 where id = Unique_AccountId_EntryDate_PrimaryKey;
+                                     
+								 END IF;
+								 
+							ELSE
+							
+								IF (amount >= 0)
+                                THEN
+                            
+									update Daily_Account_Balance
+									 SET    Balance = Balance - amount,
+											Debit = Debit - amount
+									 where id = Unique_AccountId_EntryDate_PrimaryKey;
+                                     
+								 ELSE
+                                 
+									update Daily_Account_Balance
+									 SET    Balance = Balance - amount,
+											credit = credit - amount * -1
+									 where id = Unique_AccountId_EntryDate_PrimaryKey;
+                                     
+								 END IF;
+								 
+							 END IF;
+							 
+					end if;
+					
+		 elseif 
+			  getAccountType = 1 OR 
+			  getAccountType = 4 OR 
+			  getAccountType = 6
+			  then 
+			  
+					select A.id INTO Unique_AccountId_EntryDate_PrimaryKey 
+					from Daily_Account_Balance as A
+					where A.AccountId = accountId 
+					and Convert(A.EntryDate,Date) = convert(entryDate,Date);
+					
+					if(Unique_AccountId_EntryDate_PrimaryKey is null or Unique_AccountId_EntryDate_PrimaryKey = '')
+						then 
+						
+							IF (amount >= 0)
+							THEN
+							
+								insert	into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) 
+								values(
+										accountId,
+										0,
+										amount,
+										amount,
+										convert(entryDate,date)
+									   );
+									   
+							ELSE
+							
+								insert	into Daily_Account_Balance(AccountId,Debit,Credit,Balance,EntryDate) 
+								values(
+										accountId,
+										amount * -1,
+										0,
+										amount,
+										convert(entryDate,date)
+									   );
+									   
+							END IF;
+							
+						else 
+                        
+							IF (glFlag = 5555)
+							THEN
+						
+								IF (amount >= 0)
+								THEN
+							
+									update Daily_Account_Balance 
+									SET    Balance = Balance + amount,
+										   credit = credit + amount
+									where id = Unique_AccountId_EntryDate_PrimaryKey;
+									
+								ELSE
 								
-						end if;
+									update Daily_Account_Balance 
+									SET    Balance = Balance + amount,
+										   Debit = Debit + amount * -1
+									where id = Unique_AccountId_EntryDate_PrimaryKey;
+									
+								END IF;
+                                
+							ELSE
+                            
+								IF (amount >= 0)
+								THEN
 							
+									update Daily_Account_Balance
+									 SET    Balance = Balance - amount,
+											credit = credit - amount
+									 where id = Unique_AccountId_EntryDate_PrimaryKey;
+									 
+								 ELSE
+								 
+									update Daily_Account_Balance
+									 SET    Balance = Balance - amount,
+											Debit = Debit - amount * -1
+									 where id = Unique_AccountId_EntryDate_PrimaryKey;
+									 
+								 END IF;
+                            
+                            END IF;
 							
-				end if;									
-        return '';
+					end if;
+						
+			end if;
+                    
+			return '';
 
-end if;
+	end if;
 
 if 
 	getAccountType = 3 or 
